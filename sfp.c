@@ -202,8 +202,7 @@ void criarProcesso(int pid){
 
 	processoAtual->pid = pid;
 	processoAtual->estado = ESTADO_CRIACAO;
-	//processoAtual->totalCiclos = sortearEntre( MIN_CICLOS_PROCESSO,MAX_CICLOS_PROCESSO); 
-	processoAtual->totalCiclos = sortearEntre( 10,20); 
+	processoAtual->totalCiclos = sortearEntre( MIN_CICLOS_PROCESSO,MAX_CICLOS_PROCESSO); 
 	processoAtual->ciclos_executados = 0;
 
 	if( pid == 1 ){
