@@ -33,25 +33,35 @@ int main( int argc, char *argv[] ){
 			executando->ciclos_executados++;
 			ct_maxCiclos++;
 
-			sorteio = sortearEntre( 1, 100 );
-			if( sorteio == 1){
-				//Sorteio com 1% de chance de solicitar um recurso de E/S
+			if( executando->ciclos_executados == executando->totalCiclos ){
+				//Se o processo já atingiu o máximo de ciclos
 
-				switch( sortearEntre( 0, 2 ) ){
-					case SOLICITAR_HD          :
-						adicionar_fila_hd( executando );
-						executando = NULL;
-						break;
-					case SOLICITAR_VIDEO       :
-						adicionar_fila_video( executando );
-						executando = NULL;
-						break;
-					case SOLICITAR_IMPRESSORA  :
-						adicionar_fila_impressora( executando );
-						executando = NULL;
-						break;
+				executando->estado = ESTADO_DESTRUICAO;
+				executando = NULL;
+				ct_maxCiclos = 0;
+	
+			}else{
+
+				sorteio = sortearEntre( 1, 100 );
+				if( sorteio == 1){
+					//Sorteio com 1% de chance de solicitar um recurso de E/S
+
+					switch( sortearEntre( 0, 2 ) ){
+						case SOLICITAR_HD          :
+							adicionar_fila_hd( executando );
+							executando = NULL;
+							break;
+						case SOLICITAR_VIDEO       :
+							adicionar_fila_video( executando );
+							executando = NULL;
+							break;
+						case SOLICITAR_IMPRESSORA  :
+							adicionar_fila_impressora( executando );
+							executando = NULL;
+							break;
+					}
+
 				}
-
 			}
 
 
@@ -157,14 +167,6 @@ int main( int argc, char *argv[] ){
 			executando = NULL;
 		}
 
-
-
-		if( pIdCounter == 50 ){
-			destruidos = 10;
-		}
-
-
-
 		//Incrementar contadores
 		criacao_ct++;
 	}
@@ -200,7 +202,8 @@ void criarProcesso(int pid){
 
 	processoAtual->pid = pid;
 	processoAtual->estado = ESTADO_CRIACAO;
-	processoAtual->totalCiclos = sortearEntre( MIN_CICLOS_PROCESSO,MAX_CICLOS_PROCESSO); 
+	//processoAtual->totalCiclos = sortearEntre( MIN_CICLOS_PROCESSO,MAX_CICLOS_PROCESSO); 
+	processoAtual->totalCiclos = sortearEntre( 10,20); 
 	processoAtual->ciclos_executados = 0;
 
 	if( pid == 1 ){
