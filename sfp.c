@@ -22,12 +22,9 @@ int main( int argc, char *argv[] ){
 		//EXECUTANDO
 
 		system("cls");
-		printf("CICLOS: %d - HD: %d - criacao: %d\n\n",ciclos++,fila_hd, criacao_ct);
 
 		mostrarLog();
-		mostrarLog_aptos();
-		getchar();
-		// sleep(segundos);
+		sleep(segundos);
 
 		if( executando != NULL ){
 			//há um processo sendo executado
@@ -134,16 +131,12 @@ int main( int argc, char *argv[] ){
 			}
 		}
 		/***************************************************************************/
-		printf("criacao ct: %d - totalProcessos: %d\n",criacao_ct,totalProcessos );
-			printf("\ncriacao:%s", criacao ? "tem algo":"NULL");
-			printf("pIdCounter:%d\n",pIdCounter );
-			getchar();
-			if( criacao_ct > 0 && criacao != NULL ){
-				//Existe um processo no estado de criação, e já passou um ciclo
-				adicionar_fila_apto(criacao);
-				criacao = NULL;
+		if( criacao_ct > 0 && criacao != NULL ){
+			//Existe um processo no estado de criação, e já passou um ciclo
+			adicionar_fila_apto(criacao);
+			criacao = NULL;
 
-			}
+		}
 
 		if( pIdCounter < totalProcessos ){
 			sorteio = sortearEntre(1,100);
