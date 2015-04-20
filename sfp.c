@@ -24,11 +24,11 @@ int main( int argc, char *argv[] ){
 		system("cls");
 
 		mostrarLog();
+		mostrarLog_aptos();
 		sleep(segundos);
 
 		if( executando != NULL ){
 			//há um processo sendo executado
-
 
 			executando->ciclos_executados++;
 			ct_maxCiclos++;
@@ -45,6 +45,7 @@ int main( int argc, char *argv[] ){
 				sorteio = sortearEntre( 1, 100 );
 				if( sorteio == 1){
 					//Sorteio com 1% de chance de solicitar um recurso de E/S
+					ct_maxCiclos = 0;
 
 					switch( sortearEntre( 0, 2 ) ){
 						case SOLICITAR_HD          :
@@ -70,6 +71,7 @@ int main( int argc, char *argv[] ){
 			if( primeiro_fila_apto != NULL ){
 				executando = primeiro_fila_apto->atual;
 				executando->estado = ESTADO_EXECUCAO;
+				ct_maxCiclos = 0;
 
 				proximoFila_apto();
 			}
@@ -322,16 +324,16 @@ void mostrarLog_aptos(){
 	struct item_fila * prox = NULL;
 
 	//log fila de aptos
-	printf("\n\n FILA DE HD\n\n");
+	printf("\n\n FILA DE APTOS\n\n");
 
-	fila_aux = primeiro_fila_hd;
+	fila_aux = primeiro_fila_apto;
 
 	if( fila_aux == NULL ){
 		return;
 	}
 	do{
 
-		printf("|  %d  | %d\n", fila_aux->atual->pid,fila_aux->cls_rec_exec);
+		printf("%d - ", fila_aux->atual->pid);
 
 		
 		prox = fila_aux->proximo ;
@@ -493,8 +495,6 @@ void proximoFila_apto(){
 	}else{
 
 		proximo = primeiro_fila_apto->proximo; //guardar o endereço do proximo da fila
-		printf("\n proxFila: %u\n",*proximo);
-		getchar();
 		//free( primeiro_fila_apto ); //free no item_fila atual
 
 		primeiro_fila_apto = proximo; //colocar o proximo da fila como primeiro
@@ -512,8 +512,6 @@ void proximoFila_hd(){
 	}else{
 
 		proximo = primeiro_fila_hd->proximo; //guardar o endereço do proximo da fila
-		printf("\n proxFila: %u\n",*proximo);
-		getchar();
 		//free( primeiro_fila_hd ); //free no item_fila atual
 
 		primeiro_fila_hd = proximo; //colocar o proximo da fila como primeiro
@@ -531,8 +529,6 @@ void proximoFila_video(){
 	}else{
 
 		proximo = primeiro_fila_video->proximo; //guardar o endereço do proximo da fila
-		printf("\n proxFila: %u\n",*proximo);
-		getchar();
 		//free( primeiro_fila_video ); //free no item_fila atual
 
 		primeiro_fila_video = proximo; //colocar o proximo da fila como primeiro
@@ -550,8 +546,6 @@ void proximoFila_impressora(){
 	}else{
 
 		proximo = primeiro_fila_impressora->proximo; //guardar o endereço do proximo da fila
-		printf("\n proxFila: %u\n",*proximo);
-		getchar();
 		//free( primeiro_fila_impressora ); //free no item_fila atual
 
 		primeiro_fila_impressora = proximo; //colocar o proximo da fila como primeiro
