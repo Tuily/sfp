@@ -24,7 +24,6 @@ int main( int argc, char *argv[] ){
 		system("cls");
 
 		mostrarLog();
-		mostrarLog_aptos();
 		sleep(segundos);
 
 		if( executando != NULL ){
