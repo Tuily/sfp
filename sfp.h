@@ -4,6 +4,7 @@
 #include <time.h>
 #include <string.h>
 #include <math.h>
+#include <windows.h>
 //////////////////////////////////////////////
 //                DEFINES                   //
 //////////////////////////////////////////////
@@ -35,6 +36,18 @@ enum estados{
 #define SOLICITAR_VIDEO       1
 #define SOLICITAR_IMPRESSORA  2
 
+#define COR_TITULO			  240
+#define COR_DEFAULT			  15
+#define COR_FUNDO_VERMELHO	  79
+#define COR_VERMELHO		  12
+#define COR_CRIACAO			  74
+#define COR_APTO			  70
+#define COR_EXECUCAO		  78
+#define COR_BLOQUEADO		  72
+#define COR_DESTRUICAO	      64
+
+
+
 //////////////////////////////////////////////
 //                STRUCTS                   //
 //////////////////////////////////////////////
@@ -45,6 +58,7 @@ struct processo{
 	int totalCiclos;
 	int ciclos_executados;
 	int estado;
+	int ct_estado[5];
 };
 
 struct item_fila{
@@ -70,7 +84,8 @@ void proximoFila_apto();
 void proximoFila_hd();
 void proximoFila_video();
 void proximoFila_impressora();
-
+void mostrarRelatorio();
+void set_color( int color_code );
 //////////////////////////////////////////////
 //                GLOBAIS                   //
 //////////////////////////////////////////////
@@ -88,6 +103,13 @@ static int fila_apto = 0;
 static int fila_hd = 0;
 static int fila_video = 0;
 static int fila_impressora = 0;
+
+static int pIdCounter = 0;
+static int ciclos=0;
+static int retirados_exec = 0;
+static float total_medio = 0;
+
+HANDLE  hConsole;
 
 //Primeiro processo
 struct processo* primeiroProcesso = NULL;

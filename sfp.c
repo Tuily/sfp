@@ -5,11 +5,11 @@
 int main( int argc, char *argv[] ){
 
 	srand ( time(NULL) );
-	int ciclos=0;
+	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	
 	int i;
 	int sorteio;
 	int ct_maxCiclos = 0;
-	int pIdCounter = 0;
 	int destruidos = 0;
 	int totalProcessos = atoi( argv[1] );
 	int segundos = atoi( argv[2] );
@@ -24,7 +24,7 @@ int main( int argc, char *argv[] ){
 		system("cls");
 
 		mostrarLog();
-		sleep(segundos);
+		getchar();//sleep(segundos);
 
 		if( executando != NULL ){
 			//há um processo sendo executado
@@ -36,6 +36,8 @@ int main( int argc, char *argv[] ){
 				//Se o processo já atingiu o máximo de ciclos
 
 				executando->estado = ESTADO_DESTRUICAO;
+				executando->ct_estado[ ESTADO_DESTRUICAO ]++;
+				destruidos++;
 				executando = NULL;
 				ct_maxCiclos = 0;
 	
@@ -46,7 +48,7 @@ int main( int argc, char *argv[] ){
 					//Sorteio com 1% de chance de solicitar um recurso de E/S
 					ct_maxCiclos = 0;
 
-					switch( sortearEntre( 0, 2 ) ){
+					switch( sortearEntre( 0, 3 ) ){
 						case SOLICITAR_HD          :
 							adicionar_fila_hd( executando );
 							executando = NULL;
@@ -70,6 +72,7 @@ int main( int argc, char *argv[] ){
 			if( primeiro_fila_apto != NULL ){
 				executando = primeiro_fila_apto->atual;
 				executando->estado = ESTADO_EXECUCAO;
+				executando->ct_estado[ ESTADO_EXECUCAO ]++;
 				ct_maxCiclos = 0;
 
 				proximoFila_apto();
@@ -95,6 +98,7 @@ int main( int argc, char *argv[] ){
 			if( primeiro_fila_hd != NULL ){
 				executando_hd = primeiro_fila_hd;
 				executando_hd->atual->estado = ESTADO_BLOQUEADO;
+				executando_hd->atual->ct_estado[ ESTADO_BLOQUEADO ]++;
 
 				proximoFila_hd();
 			}
@@ -116,6 +120,7 @@ int main( int argc, char *argv[] ){
 			if( primeiro_fila_video != NULL ){
 				executando_video = primeiro_fila_video;
 				executando_video->atual->estado = ESTADO_BLOQUEADO;
+				executando_video->atual->ct_estado[ ESTADO_BLOQUEADO ]++;
 
 				proximoFila_video();
 			}
@@ -137,6 +142,7 @@ int main( int argc, char *argv[] ){
 			if( primeiro_fila_impressora != NULL ){
 				executando_impressora = primeiro_fila_impressora;
 				executando_impressora->atual->estado = ESTADO_BLOQUEADO;
+				executando_impressora->atual->ct_estado[ ESTADO_BLOQUEADO ]++;
 
 				proximoFila_impressora();
 			}
@@ -166,11 +172,17 @@ int main( int argc, char *argv[] ){
 			ct_maxCiclos = 0;
 			adicionar_fila_apto( executando );
 			executando = NULL;
+			retirados_exec++;
 		}
 
 		//Incrementar contadores
 		criacao_ct++;
+		ciclos++;
 	}
+
+	system("cls");
+	mostrarRelatorio();
+	getchar();
 
 
 	return 0;
@@ -196,6 +208,7 @@ void criarProcesso(int pid){
 	static struct processo* anterior = NULL;
 	static struct processo* processoAtual = NULL;
 
+	int i;
 	//printf(" Processo criado -pid:%d\n",pid );
 
 	//Criar processo
@@ -203,8 +216,17 @@ void criarProcesso(int pid){
 
 	processoAtual->pid = pid;
 	processoAtual->estado = ESTADO_CRIACAO;
+
+	for( i = 0; i < 5; i++ ){
+		//Zerar contadores de estado
+		processoAtual->ct_estado[ i ] = 0;
+	}
+
+	processoAtual->ct_estado[ ESTADO_CRIACAO ]++;
 	processoAtual->totalCiclos = sortearEntre( MIN_CICLOS_PROCESSO,MAX_CICLOS_PROCESSO); 
 	processoAtual->ciclos_executados = 0;
+
+	total_medio += processoAtual->totalCiclos;
 
 	if( pid == 1 ){
 		primeiroProcesso = processoAtual;
@@ -231,38 +253,46 @@ void criarProcesso(int pid){
 #define ESPACO( esp, len) floor( ( esp ) / 2 +  ( len ) / 2 )
 void mostrarLog(){
 	int espaco;
+	int color_code = 0;
 	char c_estado[15];
 	char c_pid[15];
 	char aux[15];
 	struct processo* processo = NULL;
 	processo = primeiroProcesso;
 
-
+	set_color( COR_TITULO );
 	printf("|  RECURSOS  | PID |  CICLOS  | FILA |\n");
+	set_color( COR_DEFAULT );
 
 	/*********************************** HD ************************************/
+	set_color(71);
 	if( executando_hd != NULL ){
 		printf("|     HD     |  %d |   %d-%d  |  %d  |\n",executando_hd->atual->pid, executando_hd->cls_rec_exec, executando_hd->cls_rec_total,fila_hd);
 	} else{
-		printf("|     HD     | xxx |   xxx    |  xxx |\n");
+		printf("|     HD     | xxx |    xxx   |  xxx |\n");
 	}
 	/********************************* VIDEO ***********************************/
+
 	if( executando_video != NULL ){
 		printf("|   VIDEO    |  %d |   %d-%d  |  %d  |\n",executando_video->atual->pid, executando_video->cls_rec_exec, executando_video->cls_rec_total,fila_video);
 	} else{
-		printf("|   VIDEO    | xxx |  xxx   |  xxx |\n");
+		printf("|   VIDEO    | xxx |    xxx   |  xxx |\n");
 	}
 	/******************************* IMPRESSORA ********************************/
+
 	if( executando_impressora != NULL ){
 		printf("| IMPRESSORA |  %d |   %d-%d  |  %d  |\n",executando_impressora->atual->pid, executando_impressora->cls_rec_exec, executando_impressora->cls_rec_total,fila_impressora);
 	} else{
-		printf("| IMPRESSORA | xxx |  xxx   |  xxx |\n");
+		printf("| IMPRESSORA | xxx |    xxx   |  xxx |\n");
 	}
+	set_color(15);
 
 	/****************************************************************************/
-
+	set_color( COR_VERMELHO );
 	printf("\n\n______________________________________________________________\n");
+	set_color( COR_TITULO );
 	printf("| PID |     ESTADO     | CICLOS EXECUTADOS | TOTAL DE CICLOS |\n");
+	set_color( COR_DEFAULT );
 
 	do{
 		if( processo == NULL)
@@ -278,18 +308,23 @@ void mostrarLog(){
 
 			case ESTADO_CRIACAO:
 				snprintf( c_estado, sizeof( c_estado ), "CRIACAO" );
+				color_code = COR_CRIACAO;
 				break;
 			case ESTADO_APTO:
 				snprintf( c_estado, sizeof( c_estado ), "APTO" );
+				color_code = COR_APTO;
 				break;
 			case ESTADO_EXECUCAO:
 				snprintf( c_estado, sizeof( c_estado ), "EXECUCAO" );
+				color_code = COR_EXECUCAO;
 				break;
 			case ESTADO_BLOQUEADO:
 				snprintf( c_estado, sizeof( c_estado ), "BLOQUEADO" );
+				color_code = COR_BLOQUEADO;
 				break;
 			case ESTADO_DESTRUICAO:
 				snprintf( c_estado, sizeof( c_estado ), "DESTRUICAO" );
+				color_code = COR_DESTRUICAO;
 				break;
 		}
 
@@ -301,13 +336,26 @@ void mostrarLog(){
 
 		snprintf( c_estado, sizeof(c_estado), "%*s%*s",left_spc,aux,left_spc,"");
 
+		set_color( COR_FUNDO_VERMELHO );
+
+		printf("|%s", c_pid );
+		printf("|");
+
+		set_color( color_code );
+		printf(" %s ", c_estado );
+		set_color( COR_FUNDO_VERMELHO );
+
+		printf("|     %3d          ", processo->ciclos_executados );
+		printf("| %3d           |\n", processo->totalCiclos );
+		set_color( COR_DEFAULT);
 
 
-		printf("|%s| %s |     %3d          | %3d           |\n",
-					c_pid,
-					c_estado,
-					processo->ciclos_executados,
-					processo->totalCiclos);
+
+		// printf("|%s| %s |     %3d          | %3d           |\n",
+		// 			c_pid,
+		// 			c_estado,
+		// 			processo->ciclos_executados,
+		// 			processo->totalCiclos);
 
 		processo = processo->proximo;
 
@@ -315,6 +363,66 @@ void mostrarLog(){
 
 
 	}while( processo != NULL );
+
+}
+////////////////////////////////////////////////////////////////////////////
+	/*
+	1. O número total de processos que foram criados;
+	2. O tempo total (medido em ciclos de CPU) para atender a todos os processos;
+	3. O tempo total médio (número de ciclos) de execução de um processo;
+	4. A quantidade de processos que passou por cada estado (se um processo passa mais de uma vez
+	pelo mesmo estado, este conta uma só vez);
+	5. O tempo médio de espera de um processo na fila de aptos;
+	6. A quantidade de vezes que processos tiveram de ser retirados do estado de execução e devolvidos
+	para a fila de aptos.
+	*/
+void mostrarRelatorio(){
+	total_medio = total_medio / pIdCounter;
+
+	int i;
+	int ct_estados[ 5 ] = { 0, 0, 0, 0, 0 };
+	struct processo* processo = NULL;
+	processo = primeiroProcesso;
+
+
+	do{
+		if( processo == NULL)
+			return;
+
+		for( i = 0; i < 5; i++ ){
+
+			ct_estados[i] += processo->ct_estado[i] >= 1 ? 1 : 0;
+		}
+
+		processo = processo->proximo;
+
+	}while( processo != NULL );
+
+	printf(
+		"1.PROCESSOS CRIADOS :          %d \n" 
+		"2.TEMPO TOTAL ( CICLOS CPU ) : %d \n"
+		"3.TEMPO TOTAL MEDIO :          %.1f \n"
+		"4.QUANTIDADE DE PROCESSOS QUE PASSOU POR CADA ESTADO: \n"
+		"  4.1 CRIACAO :    %d \n"
+		"  4.2 APTO :       %d \n"
+		"  4.3 EXECUCAO :   %d \n"
+		"  4.4 BLOQUEADO :  %d \n"
+		"  4.5 DESTRUICAO : %d \n"
+
+		"5.TEMPO MEDIO NA FILA DE APTOS :    %d \n"
+		"6.RETIRADOS DO ESTADO DE EXECUCAO : %d \n",
+		pIdCounter,
+		ciclos,
+		total_medio,
+		ct_estados[ ESTADO_CRIACAO ],
+		ct_estados[ ESTADO_APTO ],
+		ct_estados[ ESTADO_EXECUCAO ],
+		ct_estados[ ESTADO_BLOQUEADO ],
+		ct_estados[ ESTADO_DESTRUICAO ],
+		0,
+		retirados_exec
+	);
+
 
 }
 ////////////////////////////////////////////////////////////////////////////
@@ -354,6 +462,7 @@ void adicionar_fila_apto( struct processo * processo ){
 	struct item_fila * fila_aux = NULL; //usada para alocar os processos seguintes
 
 	processo->estado = ESTADO_APTO;
+	processo->ct_estado[ ESTADO_APTO ]++;
 
 	if( fila_apto == 0 ){
 		//fila vazia
@@ -384,6 +493,7 @@ void adicionar_fila_hd( struct processo * processo ){
 	struct item_fila * fila_aux = NULL; //usada para alocar os processos seguintes
 
 	processo->estado = ESTADO_BLOQUEADO;
+	processo->ct_estado[ ESTADO_BLOQUEADO ]++;
 
 	if( fila_hd == 0 ){
 		//fila vazia
@@ -419,6 +529,7 @@ void adicionar_fila_video( struct processo * processo ){
 	struct item_fila * fila_aux = NULL; //usada para alocar os processos seguintes
 
 	processo->estado = ESTADO_BLOQUEADO;
+	processo->ct_estado[ ESTADO_BLOQUEADO ]++;
 
 	if( fila_video == 0 ){
 		//fila vazia
@@ -454,6 +565,7 @@ void adicionar_fila_impressora( struct processo * processo ){
 	struct item_fila * fila_aux = NULL; //usada para alocar os processos seguintes
 
 	processo->estado = ESTADO_BLOQUEADO;
+	processo->ct_estado[ ESTADO_BLOQUEADO ]++;
 
 	if( fila_impressora == 0 ){
 		//fila vazia
@@ -552,3 +664,6 @@ void proximoFila_impressora(){
 	fila_impressora--;
 }
 ////////////////////////////////////////////////////////////////////////////
+void set_color( int color_code){
+	SetConsoleTextAttribute(hConsole, color_code);
+}
