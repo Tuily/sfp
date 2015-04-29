@@ -21,11 +21,6 @@ int main( int argc, char *argv[] ){
 	while( destruidos < totalProcessos ){
 		//EXECUTANDO
 
-		system("cls");
-
-		mostrarLog();
-		getchar();//sleep(segundos);
-
 		if( executando != NULL ){
 			//há um processo sendo executado
 
@@ -175,9 +170,16 @@ int main( int argc, char *argv[] ){
 			retirados_exec++;
 		}
 
+		system("cls");
+
+		mostrarLog();
+		sleep(segundos);
+
 		//Incrementar contadores
-		criacao_ct++;
-		ciclos++;
+		if( destruidos < pIdCounter){
+			criacao_ct++;
+			ciclos++;
+		}
 	}
 
 	system("cls");
