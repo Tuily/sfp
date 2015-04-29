@@ -22,9 +22,8 @@ int main( int argc, char *argv[] ){
 		//EXECUTANDO
 
 		system("cls");
-
 		mostrarLog();
-		getchar();//sleep(segundos);
+		sleep(segundos);
 
 		if( executando != NULL ){
 			//há um processo sendo executado
@@ -160,7 +159,7 @@ int main( int argc, char *argv[] ){
 			//printf("%d\n",sorteio );
 
 			// 20% de chance de criar um novo processo
-			if( sorteio > 0 && sorteio <= 80 ){
+			if( sorteio > 0 && sorteio <= 20 ){
 				pIdCounter++;
 				criarProcesso( pIdCounter );
 				criacao_ct = 0;
@@ -216,6 +215,7 @@ void criarProcesso(int pid){
 
 	processoAtual->pid = pid;
 	processoAtual->estado = ESTADO_CRIACAO;
+	processoAtual->cls_filaApto = 0;
 
 	for( i = 0; i < 5; i++ ){
 		//Zerar contadores de estado
@@ -311,6 +311,9 @@ void mostrarLog(){
 				color_code = COR_CRIACAO;
 				break;
 			case ESTADO_APTO:
+				//Caso seja apto, incrementamos o contador cls_filaApto, para termos o tempo médio na fila
+				processo->cls_filaApto++;
+
 				snprintf( c_estado, sizeof( c_estado ), "APTO" );
 				color_code = COR_APTO;
 				break;
@@ -346,7 +349,7 @@ void mostrarLog(){
 		set_color( COR_FUNDO_VERMELHO );
 
 		printf("|     %3d          ", processo->ciclos_executados );
-		printf("| %3d           |\n", processo->totalCiclos );
+		printf("| %3d           |\n", processo->totalCiclos);
 		set_color( COR_DEFAULT);
 
 
@@ -378,6 +381,7 @@ void mostrarLog(){
 	*/
 void mostrarRelatorio(){
 	total_medio = total_medio / pIdCounter;
+	float total_medio_fAptos = 0;
 
 	int i;
 	int ct_estados[ 5 ] = { 0, 0, 0, 0, 0 };
@@ -394,14 +398,18 @@ void mostrarRelatorio(){
 			ct_estados[i] += processo->ct_estado[i] >= 1 ? 1 : 0;
 		}
 
+		total_medio_fAptos += processo->cls_filaApto;
+
 		processo = processo->proximo;
 
 	}while( processo != NULL );
 
+	total_medio_fAptos = total_medio_fAptos / pIdCounter;
+
 	printf(
 		"1.PROCESSOS CRIADOS :          %d \n" 
-		"2.TEMPO TOTAL ( CICLOS CPU ) : %d \n"
-		"3.TEMPO TOTAL MEDIO :          %.1f \n"
+		"2.TEMPO TOTAL :                %d CICLOS \n"
+		"3.TEMPO MEDIO DE EXECUCAO :    %.1f CICLOS \n"
 		"4.QUANTIDADE DE PROCESSOS QUE PASSOU POR CADA ESTADO: \n"
 		"  4.1 CRIACAO :    %d \n"
 		"  4.2 APTO :       %d \n"
@@ -409,7 +417,7 @@ void mostrarRelatorio(){
 		"  4.4 BLOQUEADO :  %d \n"
 		"  4.5 DESTRUICAO : %d \n"
 
-		"5.TEMPO MEDIO NA FILA DE APTOS :    %d \n"
+		"5.TEMPO MEDIO NA FILA DE APTOS :    %.1f CICLOS \n"
 		"6.RETIRADOS DO ESTADO DE EXECUCAO : %d \n",
 		pIdCounter,
 		ciclos,
@@ -419,7 +427,7 @@ void mostrarRelatorio(){
 		ct_estados[ ESTADO_EXECUCAO ],
 		ct_estados[ ESTADO_BLOQUEADO ],
 		ct_estados[ ESTADO_DESTRUICAO ],
-		0,
+		total_medio_fAptos,
 		retirados_exec
 	);
 
@@ -601,9 +609,11 @@ void proximoFila_apto(){
 
 	if( primeiro_fila_apto->proximo == NULL ){
 		//havia apenas um na fila
+
 		primeiro_fila_apto = NULL;
 
 	}else{
+
 
 		proximo = primeiro_fila_apto->proximo; //guardar o endereço do proximo da fila
 		//free( primeiro_fila_apto ); //free no item_fila atual
