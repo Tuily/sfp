@@ -59,6 +59,7 @@ struct processo{
 	int ciclos_executados;
 	int estado;
 	int ct_estado[5];
+	int cls_filaApto;
 };
 
 struct item_fila{
