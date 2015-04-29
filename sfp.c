@@ -21,13 +21,6 @@ int main( int argc, char *argv[] ){
 	while( destruidos < totalProcessos ){
 		//EXECUTANDO
 
-<<<<<<< HEAD
-=======
-		system("cls");
-		mostrarLog();
-		sleep(segundos);
-
->>>>>>> origin/tempo_medio_fila_aptos
 		if( executando != NULL ){
 			//há um processo sendo executado
 
