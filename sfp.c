@@ -39,7 +39,7 @@ int main( int argc, char *argv[] ){
 			}else{
 
 				sorteio = sortearEntre( 1, 100 );
-				if( sorteio == 1){
+				if( sorteio == 1 ){
 					//Sorteio com 1% de chance de solicitar um recurso de E/S
 					ct_maxCiclos = 0;
 
@@ -176,7 +176,7 @@ int main( int argc, char *argv[] ){
 		sleep(segundos);
 
 		//Incrementar contadores
-		if( destruidos < pIdCounter){
+		if( destruidos <= pIdCounter){
 			criacao_ct++;
 			ciclos++;
 		}
@@ -253,38 +253,116 @@ void criarProcesso(int pid){
 	criacao = processoAtual;
 }
 ////////////////////////////////////////////////////////////////////////////
+void center( char str[20], int max){
+
+	char aux[20];
+	int len = strlen( str );
+	int i,j,espaco;
+
+	j = 0;
+	memset( aux, 32, sizeof(aux) );
+	aux[19]='\0';
+	espaco = floor(  ( max - len )/2 );
+
+	for( i = 0 ; i < len  ; i++ ){
+
+		aux[ espaco++ ] = str[ j++ ];
+	}
+	aux[ max ] = '\0';
+
+	// printf(">>%s<<\n",aux );
+	strcpy( str, aux);
+
+
+
+}
+
 #define ESPACO( esp, len) floor( ( esp ) / 2 +  ( len ) / 2 )
 void mostrarLog(){
 	int espaco;
 	int color_code = 0;
-	char c_estado[15];
-	char c_pid[15];
-	char aux[15];
+	char c_estado[20];
+	char c_pid[20];
+	char aux[20];
 	struct processo* processo = NULL;
 	processo = primeiroProcesso;
 
+	set_color(8);
+	printf("\nCICLO: %d__________________________________________________________________", ciclos);
+
+	set_color( COR_VERMELHO );
+	printf("\n______________________________________\n");
 	set_color( COR_TITULO );
 	printf("|  RECURSOS  | PID |  CICLOS  | FILA |\n");
 	set_color( COR_DEFAULT );
 
 	/*********************************** HD ************************************/
+
+	char aux_pid[20];
+	char aux_exe[20];
+	char aux_tot[20];
+	char aux_est[20];
+	char aux_fil[20];
+
 	set_color(71);
 	if( executando_hd != NULL ){
-		printf("|     HD     |  %d |   %d-%d  |  %d  |\n",executando_hd->atual->pid, executando_hd->cls_rec_exec, executando_hd->cls_rec_total,fila_hd);
+
+		//Centralizar elementos do HD
+		memset( aux_pid, 0, sizeof( aux_pid ) );
+		snprintf( aux_pid, sizeof( aux_pid ), "%d", executando_hd->atual->pid );
+		center( aux_pid,5);
+
+		memset( aux_exe, 0, sizeof( aux_exe ) );
+		snprintf( aux_exe, sizeof( aux_exe ), "%d-%d", executando_hd->cls_rec_exec,executando_hd->cls_rec_total );
+		center( aux_exe,10);
+
+		memset( aux_fil, 0, sizeof( aux_fil ) );
+		snprintf( aux_fil, sizeof( aux_fil ), "%d", fila_hd );
+		center( aux_fil,6);
+
+		printf("|     HD     |%s|%s|%s|\n",aux_pid, aux_exe ,aux_fil);
 	} else{
 		printf("|     HD     | xxx |    xxx   |  xxx |\n");
 	}
 	/********************************* VIDEO ***********************************/
 
 	if( executando_video != NULL ){
-		printf("|   VIDEO    |  %d |   %d-%d  |  %d  |\n",executando_video->atual->pid, executando_video->cls_rec_exec, executando_video->cls_rec_total,fila_video);
+
+		//Centralizar elementos do VIDEO
+		memset( aux_pid, 0, sizeof( aux_pid ) );
+		snprintf( aux_pid, sizeof( aux_pid ), "%d", executando_video->atual->pid );
+		center( aux_pid,5);
+
+		memset( aux_exe, 0, sizeof( aux_exe ) );
+		snprintf( aux_exe, sizeof( aux_exe ), "%d-%d", executando_video->cls_rec_exec,executando_video->cls_rec_total );
+		center( aux_exe,10);
+
+		memset( aux_fil, 0, sizeof( aux_fil ) );
+		snprintf( aux_fil, sizeof( aux_fil ), "%d", fila_video );
+		center( aux_fil,6);
+
+		printf("|   VIDEO    |%s|%s|%s|\n",aux_pid, aux_exe ,aux_fil);
+		
 	} else{
 		printf("|   VIDEO    | xxx |    xxx   |  xxx |\n");
 	}
 	/******************************* IMPRESSORA ********************************/
 
 	if( executando_impressora != NULL ){
-		printf("| IMPRESSORA |  %d |   %d-%d  |  %d  |\n",executando_impressora->atual->pid, executando_impressora->cls_rec_exec, executando_impressora->cls_rec_total,fila_impressora);
+
+		//Centralizar elementos da IMPRESSORA
+		memset( aux_pid, 0, sizeof( aux_pid ) );
+		snprintf( aux_pid, sizeof( aux_pid ), "%d", executando_impressora->atual->pid );
+		center( aux_pid,5);
+
+		memset( aux_exe, 0, sizeof( aux_exe ) );
+		snprintf( aux_exe, sizeof( aux_exe ), "%d-%d", executando_impressora->cls_rec_exec,executando_impressora->cls_rec_total );
+		center( aux_exe,10);
+
+		memset( aux_fil, 0, sizeof( aux_fil ) );
+		snprintf( aux_fil, sizeof( aux_fil ), "%d", fila_impressora );
+		center( aux_fil,6);
+		printf("| IMPRESSORA |%s|%s|%s|\n", aux_pid, aux_exe ,aux_fil);
 	} else{
 		printf("| IMPRESSORA | xxx |    xxx   |  xxx |\n");
 	}
@@ -292,7 +370,7 @@ void mostrarLog(){
 
 	/****************************************************************************/
 	set_color( COR_VERMELHO );
-	printf("\n\n______________________________________________________________\n");
+	printf("______________________________________________________________\n");
 	set_color( COR_TITULO );
 	printf("| PID |     ESTADO     | CICLOS EXECUTADOS | TOTAL DE CICLOS |\n");
 	set_color( COR_DEFAULT );
@@ -302,71 +380,68 @@ void mostrarLog(){
 			return;
 
 		//Centralizar PID
-		snprintf( aux, sizeof( aux ), "%d", processo->pid);
-		espaco = ESPACO( 5,strlen( aux) );
-		snprintf( c_pid, sizeof(c_pid), "%*s%*s",espaco ,aux,espaco,"" );
+		memset( aux_pid, 0, sizeof( aux_pid));
+		snprintf( aux_pid, sizeof( aux_pid ), "%d", processo->pid);
+		center( aux_pid,5);
+		
 
-		memset( c_estado, 0, sizeof(c_estado) );
+		//Pegar e centralizar ESTADO
+		memset( aux_est, 0, sizeof(aux_est) );
 		switch( processo->estado ){
 
 			case ESTADO_CRIACAO:
-				snprintf( c_estado, sizeof( c_estado ), "CRIACAO" );
+				snprintf( aux_est, sizeof( aux_est ), "CRIACAO" );
 				color_code = COR_CRIACAO;
 				break;
 			case ESTADO_APTO:
 				//Caso seja apto, incrementamos o contador cls_filaApto, para termos o tempo médio na fila
 				processo->cls_filaApto++;
 
-				snprintf( c_estado, sizeof( c_estado ), "APTO" );
+				snprintf( aux_est, sizeof( aux_est ), "APTO" );
 				color_code = COR_APTO;
 				break;
 			case ESTADO_EXECUCAO:
-				snprintf( c_estado, sizeof( c_estado ), "EXECUCAO" );
+				snprintf( aux_est, sizeof( aux_est ), "EXECUCAO" );
 				color_code = COR_EXECUCAO;
 				break;
 			case ESTADO_BLOQUEADO:
-				snprintf( c_estado, sizeof( c_estado ), "BLOQUEADO" );
+				snprintf( aux_est, sizeof( aux_est ), "BLOQUEADO" );
 				color_code = COR_BLOQUEADO;
 				break;
 			case ESTADO_DESTRUICAO:
-				snprintf( c_estado, sizeof( c_estado ), "DESTRUICAO" );
+				snprintf( aux_est, sizeof( aux_est ), "DESTRUICAO" );
 				color_code = COR_DESTRUICAO;
 				break;
 		}
 
-		int len_str = strlen( c_estado );
-		int left_spc = floor(   15 / 2 + len_str / 2);
-		
+		center( aux_est, 16 );
 
-		snprintf( aux, sizeof(aux), c_estado );
-
-		snprintf( c_estado, sizeof(c_estado), "%*s%*s",left_spc,aux,left_spc,"");
-
+		//Pid
 		set_color( COR_FUNDO_VERMELHO );
+		printf("|%s|", aux_pid );
 
-		printf("|%s", c_pid );
-		printf("|");
-
+		//Estado é o único elemento que troca cor
 		set_color( color_code );
-		printf(" %s ", c_estado );
+		printf("%s", aux_est );
+
 		set_color( COR_FUNDO_VERMELHO );
 
-		printf("|     %3d          ", processo->ciclos_executados );
-		printf("| %3d           |\n", processo->totalCiclos);
+		//Ciclos executados
+		memset( aux_exe, 0, sizeof( aux_exe));
+		snprintf( aux_exe, sizeof( aux_exe ), "%d", processo->ciclos_executados);
+		center( aux_exe, 19 );
+		printf("|%s", aux_exe );
+
+		//Total de ciclos
+
+		memset( aux_tot, 0, sizeof( aux_tot));
+		snprintf( aux_tot, sizeof( aux_tot ), "%d", processo->totalCiclos );
+		center( aux_tot, 17 );
+		printf("|%s|\n", aux_tot);
+
 		set_color( COR_DEFAULT);
 
-
-
-		// printf("|%s| %s |     %3d          | %3d           |\n",
-		// 			c_pid,
-		// 			c_estado,
-		// 			processo->ciclos_executados,
-		// 			processo->totalCiclos);
-
 		processo = processo->proximo;
-
-
-
 
 	}while( processo != NULL );
 
@@ -389,6 +464,7 @@ void mostrarRelatorio(){
 	int i;
 	int ct_estados[ 5 ] = { 0, 0, 0, 0, 0 };
 	struct processo* processo = NULL;
+	struct processo* processo_anterior = NULL;
 	processo = primeiroProcesso;
 
 
@@ -403,22 +479,27 @@ void mostrarRelatorio(){
 
 		total_medio_fAptos += processo->cls_filaApto;
 
+		processo_anterior = processo;
 		processo = processo->proximo;
+		free( processo_anterior );
 
 	}while( processo != NULL );
 
 	total_medio_fAptos = total_medio_fAptos / pIdCounter;
 
+	set_color( COR_TITULO );
+	printf("\n|                   RELATORIO                        |\n");
+	set_color( COR_FUNDO_VERMELHO );
 	printf(
 		"1.PROCESSOS CRIADOS :          %d \n" 
-		"2.TEMPO TOTAL :                %d CICLOS \n"
-		"3.TEMPO MEDIO DE EXECUCAO :    %.1f CICLOS \n"
-		"4.QUANTIDADE DE PROCESSOS QUE PASSOU POR CADA ESTADO: \n"
-		"  4.1 CRIACAO :    %d \n"
-		"  4.2 APTO :       %d \n"
-		"  4.3 EXECUCAO :   %d \n"
-		"  4.4 BLOQUEADO :  %d \n"
-		"  4.5 DESTRUICAO : %d \n"
+		"2.TEMPO TOTAL :                %d CICLOS\n"
+		"3.TEMPO MEDIO DE EXECUCAO :    %.1f CICLOS\n"
+		"4.QUANTIDADE DE PROCESSOS QUE PASSOU POR CADA ESTADO:\n"
+		"  4.1 CRIACAO :    %d\n"
+		"  4.2 APTO :       %d\n"
+		"  4.3 EXECUCAO :   %d\n"
+		"  4.4 BLOQUEADO :  %d\n"
+		"  4.5 DESTRUICAO : %d\n"
 
 		"5.TEMPO MEDIO NA FILA DE APTOS :    %.1f CICLOS \n"
 		"6.RETIRADOS DO ESTADO DE EXECUCAO : %d \n",
@@ -613,13 +694,13 @@ void proximoFila_apto(){
 	if( primeiro_fila_apto->proximo == NULL ){
 		//havia apenas um na fila
 
+		free( primeiro_fila_apto );
 		primeiro_fila_apto = NULL;
 
 	}else{
 
-
 		proximo = primeiro_fila_apto->proximo; //guardar o endereço do proximo da fila
-		//free( primeiro_fila_apto ); //free no item_fila atual
+		free( primeiro_fila_apto ); //free no item_fila atual
 
 		primeiro_fila_apto = proximo; //colocar o proximo da fila como primeiro
 	}
